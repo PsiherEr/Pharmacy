@@ -9,7 +9,6 @@ using System;
 using System.Collections.Generic;
 using System.Dynamic;
 using System.Linq;
-using System.Data.Entity.ModelConfiguration.Conventions;
 using System.Security.Cryptography.X509Certificates;
 using System.Text;
 using System.Threading.Tasks;
@@ -293,14 +292,16 @@ namespace PharmacyDB.EF
             {
                 Id = 1,
                 Address = "Nowhere st. 10",
-                Phone = 067212511
+                Phone = 067212511,
+                ManagerId = 1
             };
 
             Warehouse warehouse2 = new Warehouse
             {
                 Id = 2,
                 Address = "Somewhere st. 24",
-                Phone = 067512215
+                Phone = 067512215,
+                ManagerId = 1
             };
 
             modelBuilder.Entity<Client>().HasData(client1, client2, client3);
@@ -331,7 +332,7 @@ namespace PharmacyDB.EF
                 .Entity<Client>()
                 .Property(x => x.FullName)
                 .HasColumnName("Full Name")
-                .HasMaxLength(255);
+                .HasMaxLength(128);
 
             modelBuilder
                 .Entity<Employee>()
@@ -343,31 +344,40 @@ namespace PharmacyDB.EF
                 .Entity<Employee>()
                 .Property(x => x.FullName)
                 .HasColumnName("Full Name")
-                .HasMaxLength(255);
+                .HasMaxLength(128)
+                .IsRequired();
 
             modelBuilder
                 .Entity<Employee>()
                 .Property(x => x.Email)
-                .HasMaxLength(255);
+                .HasMaxLength(32)
+                .IsRequired();
 
             modelBuilder
                 .Entity<Employee>()
                 .Property(x => x.Position)
-                .HasMaxLength(255);
+                .HasMaxLength(128)
+                .IsRequired();
 
             modelBuilder
                 .Entity<Medicine>()
                 .HasKey(x => x.Id)
                 .HasName("PK_MedicineId");
 
-           /* modelBuilder
+           modelBuilder
                 .Entity<Medicine>()
-                .HasCheckConstraint("Price", "Price > 0");*/
+                .HasCheckConstraint("Price", "Price >= 0");
+
+            modelBuilder
+                .Entity<Medicine>()
+                .Property(x => x.Price)
+                .HasDefaultValue(0);
 
             modelBuilder
                 .Entity<Medicine>()
                 .Property(x => x.Name)
-                .HasMaxLength(255);
+                .HasMaxLength(128)
+                .IsRequired();
 
             modelBuilder
                 .Entity<Medicine>()
@@ -393,6 +403,15 @@ namespace PharmacyDB.EF
                 .HasKey(x => new { x.OrderId, x.MedicineId });
 
             modelBuilder
+                .Entity<MedicineInOrder>()
+                .HasCheckConstraint("Price", "Price >= 0");
+
+            modelBuilder
+                .Entity<MedicineInOrder>()
+                .Property(x => x.Price)
+                .HasDefaultValue(0);
+
+            modelBuilder
                 .Entity<MedicineInReceipt>()
                 .HasOne(x => x.Medicine)
                 .WithMany(x => x.MedicineInReceipts)
@@ -409,6 +428,15 @@ namespace PharmacyDB.EF
             modelBuilder
                 .Entity<MedicineInReceipt>()
                 .HasKey(x => new { x.ReceiptId, x.MedicineId });
+
+            modelBuilder
+                .Entity<MedicineInReceipt>()
+                .HasCheckConstraint("Price", "Price >= 0");
+
+            modelBuilder
+                .Entity<MedicineInReceipt>()
+                .Property(x => x.Price)
+                .HasDefaultValue(0);
 
             modelBuilder
                 .Entity<MedicineInWarehouse>()
@@ -434,14 +462,38 @@ namespace PharmacyDB.EF
                 .HasName("PK_OrderId");
 
             modelBuilder
+                .Entity<Order>()
+                .HasCheckConstraint("Price", "Price >= 0");
+
+            modelBuilder
+                .Entity<Order>()
+                .Property(x => x.Price)
+                .HasDefaultValue(0);
+
+            modelBuilder
                 .Entity<Pharmacy>()
                 .HasKey(x => x.Id)
                 .HasName("PK_PharmacyId");
 
             modelBuilder
+                .Entity<Pharmacy>()
+                .Property(x => x.Address)
+                .HasMaxLength(128)
+                .IsRequired();
+
+            modelBuilder
                 .Entity<Receipt>()
                 .HasKey(x => x.Id)
                 .HasName("PK_ReceiptId");
+
+            modelBuilder
+                .Entity<Receipt>()
+                .HasCheckConstraint("Price", "Price >= 0");
+
+            modelBuilder
+                .Entity<Receipt>()
+                .Property(x => x.Price)
+                .HasDefaultValue(0);
 
             modelBuilder
                 .Entity<ReceiptAndClient>()
@@ -469,12 +521,29 @@ namespace PharmacyDB.EF
             modelBuilder
                 .Entity<Supplier>()
                 .Property(x => x.Name)
-                .HasMaxLength(255);
+                .HasMaxLength(128)
+                .IsRequired();
+
+            modelBuilder
+                .Entity<Supplier>()
+                .Property(x => x.Address)
+                .HasMaxLength(128);
 
             modelBuilder
                 .Entity<Warehouse>()
                 .HasKey(x => x.Id)
                 .HasName("PK_WarehouseId");
+
+            modelBuilder
+                .Entity<Warehouse>()
+                .Property(x => x.Address)
+                .HasMaxLength(128)
+                .IsRequired();
+
+            modelBuilder
+                .Entity<Warehouse>()
+                .Property(x => x.ManagerId)
+                .IsRequired();
 
 
 

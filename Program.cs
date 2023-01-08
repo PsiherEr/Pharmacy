@@ -69,10 +69,10 @@ namespace PharmacyDB
 
             foreach(var item in query)
             {
-                Console.WriteLine($"\nClient: {item.Client.FullName} {item.Client.Phone}");
-                Console.WriteLine($"Receipt: {item.Receipt.Id} "/*"{item.Receipt.CreationDate} {item.Receipt.Price}"*/);
-                Console.WriteLine($"Medicine: {item.Medicine.Name}"/*"{item.Medicine.Price} {item.Medicine.SellBy}"*/);
-                Console.WriteLine($"Order: {item.Order.Id} "/*"{item.Order.OrderDate}"*/);
+                Console.WriteLine($"\nClient: {item.Client.FullName} +380{item.Client.Phone}");
+                Console.WriteLine($"Receipt Id:{item.Receipt.Id}  Creation: {item.Receipt.CreationDate.ToShortDateString()}  Price:{item.Receipt.Price}");
+                Console.WriteLine($"Medicine: {item.Medicine.Name}  Price:{item.Medicine.Price}  Sell by {item.Medicine.SellBy.ToShortDateString()}");
+                Console.WriteLine($"Order Id:{item.Order.Id}  Date: {item.Order.OrderDate.ToShortDateString()}");
             }
         }
 
@@ -134,7 +134,8 @@ namespace PharmacyDB
             Warehouse warehouse = new Warehouse()
             {
                 Address = "Kyiv, Khreshchatyk, 1",
-                Phone = 1522152121
+                Phone = 1522152121,
+                ManagerId = 1
             };
 
             receiptAndClient.Receipt = receipt;
