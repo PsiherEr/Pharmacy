@@ -12,8 +12,8 @@ namespace PharmacyDB.Models
         public decimal Price { get; set; }
         public string Name { get; set; }
         public DateTime SellBy { get; set; }
-        public MedicineInOrder MedicineInOrder { get; set; }
-        public List<MedicineInReceipt> MedicineInReceipts { get; set; } = new List<MedicineInReceipt>();
-        public List<MedicineInWarehouse> MedicineInWarehouses { get; set; } = new List<MedicineInWarehouse>();
+        public virtual MedicineInOrder MedicineInOrder { get; set; }
+        public virtual List<MedicineInReceipt> MedicineInReceipts { get; set; } = new List<MedicineInReceipt>();
+        public virtual List<MedicineInWarehouse> MedicineInWarehouses { get; set; } = new List<MedicineInWarehouse>();
     }
 }

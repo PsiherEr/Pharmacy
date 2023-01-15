@@ -45,7 +45,7 @@ namespace PharmacyDB.EF
             var config = builder.Build();
             string connectionString = config.GetConnectionString("DefaultConnection");
 
-            optionsBuilder.UseSqlServer(connectionString);
+            optionsBuilder.UseSqlServer(connectionString).UseLazyLoadingProxies();
         }
         
         protected override void OnModelCreating(ModelBuilder modelBuilder)

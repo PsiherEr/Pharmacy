@@ -11,6 +11,6 @@ namespace PharmacyDB.Models
     {
         public int Phone { get; set; }
         public string FullName { get; set; }
-        public List<ReceiptAndClient> ReceiptsAndClient { get; set; } = new List<ReceiptAndClient>();
+        public virtual List<ReceiptAndClient> ReceiptsAndClient { get; set; } = new List<ReceiptAndClient>();
     }
 }

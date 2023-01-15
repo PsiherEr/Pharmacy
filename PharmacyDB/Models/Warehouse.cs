@@ -11,8 +11,8 @@ namespace PharmacyDB.Models
         public int Id { get; set; }
         public string Address { get; set; }
         public int Phone { get; set; }
-        public List<MedicineInWarehouse> MedicinesInWarehouse { get; set; } = new List<MedicineInWarehouse>();
+        public virtual List<MedicineInWarehouse> MedicinesInWarehouse { get; set; } = new List<MedicineInWarehouse>();
         public int ManagerId { get; set; }
-        public Employee Manager { get; set; }
+        public virtual Employee Manager { get; set; }
     }
 }

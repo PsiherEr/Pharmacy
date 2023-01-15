@@ -8,8 +8,7 @@ using System.Reflection.Metadata;
 using System.Threading;
 using System.Threading.Tasks;
 using static Microsoft.EntityFrameworkCore.DbLoggerCategory.Database;
-
-
+using System.Security.Cryptography;
 
 namespace PharmacyDB
 {
@@ -19,7 +18,9 @@ namespace PharmacyDB
         static void Main(string[] args)
         {
             DefaultDatabase();
-            Console.WriteLine("\nRead: ");
+
+
+            /*Console.WriteLine("\nRead: ");
             Read_LINQ_Query_Syntax();
             Create();
             Console.WriteLine("\nCreate: ");
@@ -29,7 +30,46 @@ namespace PharmacyDB
             Read_LINQ_Query_Syntax();
             Delete();
             Console.WriteLine("\nDelete: ");
-            Read_LINQ_Query_Syntax();
+            Read_LINQ_Query_Syntax();*/
+
+            Console.WriteLine("\n------------------------Union-------------------------------");
+            Union();
+            Console.WriteLine("\n------------------------Except-------------------------------");
+            Except();
+            Console.WriteLine("\n------------------------Intersect-------------------------------");
+            Intersect();
+            Console.WriteLine("\n------------------------Join-------------------------------");
+            Join();
+            Console.WriteLine("\n------------------------GroupBy-------------------------------");
+            GroupBy();
+            Console.WriteLine("\n------------------------Distinct-------------------------------");
+            Distinct();
+            Console.WriteLine("\n------------------------Any-------------------------------");
+            Any();
+            Console.WriteLine("\n------------------------All-------------------------------");
+            All();
+            Console.WriteLine("\n------------------------Min-------------------------------");
+            Min();
+            Console.WriteLine("\n------------------------Max-------------------------------");
+            Max();
+            Console.WriteLine("\n------------------------Average-------------------------------");
+            Average();
+            Console.WriteLine("\n------------------------Sum-------------------------------");
+            Sum();
+            Console.WriteLine("\n------------------------Count-------------------------------");
+            Count();
+            Console.WriteLine("\n------------------------ExplicitLoading-------------------------------");
+            ExplicitLoading();
+            Console.WriteLine("\n------------------------LazyLoading-------------------------------");
+            LazyLoading();
+            Console.WriteLine("\n------------------------EagerLoading-------------------------------");
+            EagerLoading();
+            Console.WriteLine("\n------------------------AsNotTracking-------------------------------");
+            AsNotTracking();
+            Console.WriteLine("\n------------------------Procedure-------------------------------");
+            Procedure();
+            Console.WriteLine("\n------------------------Function-------------------------------");
+            Function();
         }
 
         public static void DefaultDatabase()
@@ -37,6 +77,289 @@ namespace PharmacyDB
             ApplicationDBContext context = new ApplicationDBContext();
             context.Database.EnsureDeleted();
             context.Database.EnsureCreated();
+
+            var createSql = @"
+                create procedure [dbo].[GetMedicinesByPrice] as
+                begin
+                    select * from dbo.Medicines
+                    order by Price desc
+                end
+            ";
+
+            context.Database.ExecuteSqlRaw(createSql);
+
+            createSql = @"
+                create function [dbo].[SearchOrdersBySupplierId] (@id int)
+                returns table
+                as
+                return
+                    select * from dbo.Orders
+                    where SupplierId = @id
+            ";
+
+            context.Database.ExecuteSqlRaw(createSql);
+        }
+
+        public static void Union()
+        {
+            ApplicationDBContext context = new ApplicationDBContext();
+
+            var query = context.Clients.Select(x => x.FullName)
+                .Union(context.Employees.Select(x => x.FullName));
+
+            foreach (var item in query)
+            {
+                Console.WriteLine($"{item}");
+            }
+        }
+        public static void Except()
+        {
+            ApplicationDBContext context = new ApplicationDBContext();
+
+            var selector1 = context.Medicines.ToList();
+            var selector2 = context.Medicines.Where(x => x.Price > 600).ToList();
+
+            var query = selector1.Except(selector2);
+
+            foreach (var item in query)
+            {
+                Console.WriteLine($"MedicineId: {item.Id}, Name: {item.Name}, Price: {item.Price}");
+            }
+        }
+
+        public static void Intersect()
+        {
+            ApplicationDBContext context = new ApplicationDBContext();
+
+            var query = context.Employees.Select(x => x.Id)
+                .Intersect(context.Orders.Select(x => x.ManagerId));
+
+            foreach (var item in query)
+            {
+                Console.WriteLine($"ManagerId: {item}");
+            }
+        }
+
+        public static void Join()
+        {
+            ApplicationDBContext context = new ApplicationDBContext();
+
+            var query = context.Orders
+                .Join(context.Employees,
+                order => order.ManagerId,
+                employee => employee.Id,
+                (order, employee) => new
+                {
+                    OrderId = order.Id,
+                    ManagerId = employee.Id,
+                    ManagerName = employee.FullName
+                });
+
+            foreach (var item in query)
+            {
+                Console.WriteLine($"OrderId: {item.OrderId} ManagerId: {item.ManagerId} ManagerName: {item.ManagerName}");
+            }
+        }
+
+        public static void GroupBy()
+        {
+            ApplicationDBContext context = new ApplicationDBContext();
+
+            var groups = context.Receipts
+                .GroupBy(x => x.ReceiptAndClient.ClientPhone)
+                .Select(m => new
+                {
+                    m.Key,
+                    Count = m.Count()
+                })
+                .ToList();
+
+            foreach (var group in groups)
+            {
+                Console.WriteLine($"+380{group.Key} - {group.Count}");
+            }
+        }
+
+        public static void Distinct()
+        {
+            ApplicationDBContext context = new ApplicationDBContext();
+
+            var groups = context.Employees
+                .Select(m => m.Position)
+                .Distinct()
+                .ToList();
+
+            foreach (var group in groups)
+            {
+                Console.WriteLine($"{group}");
+            }
+        }
+
+        public static void Any()
+        {
+            ApplicationDBContext context = new ApplicationDBContext();
+
+            bool result = context.Employees.Any(u => u.Position == "Cashier");
+
+            Console.WriteLine(result);
+        }
+
+        public static void All()
+        {
+            ApplicationDBContext context = new ApplicationDBContext();
+
+            bool result = context.Employees.All(u => u.Position == "Cashier");
+
+            Console.WriteLine(result);
+        }
+
+        public static void Min()
+        {
+            ApplicationDBContext context = new ApplicationDBContext();
+
+            var minPrice = context.Medicines.Min(u => u.Price);
+
+            Console.WriteLine($"Min price = {minPrice}");
+        }
+
+        public static void Max()
+        {
+            ApplicationDBContext context = new ApplicationDBContext();
+
+            var maxPrice = context.Medicines.Max(u => u.Price);
+
+            Console.WriteLine($"Max price = {maxPrice}");
+        }
+
+        public static void Average()
+        {
+            ApplicationDBContext context = new ApplicationDBContext();
+
+            var avgPrice = context.Medicines.Average(u => u.Price);
+
+            Console.WriteLine($"Average price = {avgPrice}");
+        }
+
+        public static void Sum()
+        {
+            ApplicationDBContext context = new ApplicationDBContext();
+
+            var sumPrice = context.Medicines.Sum(u => u.Price);
+
+            Console.WriteLine($"Sum price = {sumPrice}");
+        }
+
+        public static void Count()
+        {
+            ApplicationDBContext context = new ApplicationDBContext();
+
+            var meds = context.Medicines.Count();
+
+            Console.WriteLine($"Count medicines = {meds}");
+        }
+
+        public static void ExplicitLoading()
+        {
+            ApplicationDBContext context = new ApplicationDBContext();
+
+            var med = context.Medicines.First();
+
+            context.MedicinesInReceipts.Where(x => x.MedicineId == med.Id).Load();
+            context.Receipts.Where(x => x.MedicinesInReceipt.Any(x => x.MedicineId == med.Id)).Load();
+
+            foreach (var item in med.MedicineInReceipts)
+            {
+                Console.WriteLine($"MedicineId: {item.MedicineId}, ReceiptId: {item.ReceiptId}");
+            }
+        }
+
+        public static void LazyLoading()
+        {
+            ApplicationDBContext context = new ApplicationDBContext();
+
+            var orders = context.Orders.ToList();
+
+            foreach (var order in orders)
+            {
+                Console.WriteLine($"OrderId: {order.Id}, SupplierName: {order.Supplier.Name}");
+            }
+        }
+
+            public static void EagerLoading()
+        {
+            ApplicationDBContext context = new ApplicationDBContext();
+            
+            var medicinesInWarehouses = context.MedicinesInWarehouses
+                .Include(x => x.Medicine)
+                .Include(x => x.Warehouse)
+                .ToList();
+
+            foreach (var item in medicinesInWarehouses)
+            {
+                Console.WriteLine($"Medicine: {item.Medicine.Name}, Warehouse: {item.Warehouse.Id}");
+            }
+        }
+
+        public static void AsNotTracking()
+        {
+            ApplicationDBContext context = new ApplicationDBContext();
+
+            var temp = context.Medicines.Where(x => x.Id == 2).Single();
+
+            Console.WriteLine($"Price = {temp.Price}");
+
+            temp.Price = 300.00m;
+
+            context.SaveChanges();
+
+            temp = context.Medicines.Where(x => x.Id == 2).AsNoTracking().Single();
+
+            temp.Price = 325.00m;
+
+            Console.WriteLine($"Price = {temp.Price}");
+
+            context.SaveChanges();
+
+            temp = context.Medicines.Where(x => x.Id == 2).AsNoTracking().Single();
+
+            Console.WriteLine($"Price = {temp.Price}");
+        }
+
+        public static void Procedure()
+        {
+            ApplicationDBContext context = new ApplicationDBContext();
+
+            var meds = context
+                .Medicines
+                .FromSqlRaw("EXECUTE dbo.GetMedicinesByPrice").ToList();
+
+            Console.WriteLine("Medicines:");
+            foreach (var item in meds)
+            {
+                Console.WriteLine("--------");
+                Console.WriteLine(
+                    $"Id: {item.Id}. " +
+                    $"Name: {item.Name}. " +
+                    $"Price: {item.Price}.");
+            }
+        }
+
+        public static void Function()
+        {
+            ApplicationDBContext context = new ApplicationDBContext();
+
+            var orders = context
+                .Orders
+                .FromSqlRaw("SELECT * FROM dbo.SearchOrdersBySupplierId(1)").ToList();
+            
+            Console.WriteLine("Found:");
+            foreach (var item in orders)
+            {
+                Console.WriteLine("--------");
+                Console.WriteLine(
+                    $"Id: {item.Id}. " +
+                    $"Price: {item.Price}.");
+            }
         }
 
         public static void Read_LINQ_Query_Syntax()

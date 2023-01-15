@@ -9,9 +9,9 @@ namespace PharmacyDB.Models
     public class MedicineInOrder
     {
         public int MedicineId { get; set; }
-        public Medicine Medicine { get; set; }
+        public virtual Medicine Medicine { get; set; }
         public int OrderId { get; set; }
-        public Order Order { get; set; }
+        public virtual Order Order { get; set; }
         public int Quantity { get; set; }
         public decimal Price { get; set; }
     }

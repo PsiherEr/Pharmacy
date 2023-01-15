@@ -9,8 +9,8 @@ namespace PharmacyDB.Models
     public class ReceiptAndClient
     {
         public int ReceiptId { get; set; }
-        public Receipt Receipt { get; set; }
+        public virtual Receipt Receipt { get; set; }
         public int ClientPhone { get; set; }
-        public Client Client { get; set; }
+        public virtual Client Client { get; set; }
     }
 }

@@ -9,9 +9,9 @@ namespace PharmacyDB.Models
     public class MedicineInWarehouse
     {
         public int MedicineId { get; set; }
-        public Medicine Medicine { get; set; }
+        public virtual Medicine Medicine { get; set; }
         public int WarehouseId { get; set; }
-        public Warehouse Warehouse { get; set; }
+        public virtual Warehouse Warehouse { get; set; }
         public int Quantity { get; set; }
     }
 }
