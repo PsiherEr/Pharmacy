@@ -9,16 +9,18 @@ using System.Threading;
 using System.Threading.Tasks;
 using static Microsoft.EntityFrameworkCore.DbLoggerCategory.Database;
 using System.Security.Cryptography;
+using Microsoft.Identity.Client.Extensions.Msal;
+using System.Drawing;
+using System.Runtime.ConstrainedExecution;
 
 namespace PharmacyDB
 {
     internal class Program
     {
         static AutoResetEvent waitHandler = new AutoResetEvent(true);
-        static void Main(string[] args)
+        static async Task Main(string[] args)
         {
             DefaultDatabase();
-
 
             /*Console.WriteLine("\nRead: ");
             Read_LINQ_Query_Syntax();
@@ -32,7 +34,7 @@ namespace PharmacyDB
             Console.WriteLine("\nDelete: ");
             Read_LINQ_Query_Syntax();*/
 
-            Console.WriteLine("\n------------------------Union-------------------------------");
+            /*Console.WriteLine("\n------------------------Union-------------------------------");
             Union();
             Console.WriteLine("\n------------------------Except-------------------------------");
             Except();
@@ -69,7 +71,266 @@ namespace PharmacyDB
             Console.WriteLine("\n------------------------Procedure-------------------------------");
             Procedure();
             Console.WriteLine("\n------------------------Function-------------------------------");
-            Function();
+            Function();*/
+
+            /*Thread create = new Thread(CreateThread);
+            create.Start();
+
+            Thread update = new Thread(UpdateThread);
+            update.Start();
+
+            Thread delete = new Thread(DeleteThread);
+            delete.Start();
+
+            Thread read = new Thread(ReadThread);
+            read.Start();*/
+
+            await CreateAsync();
+            await UpdateClientAsync(672463891);
+            await DeleteReceiptAsync(3);
+            await ReadAsync();
+
+
+        }
+
+        public static void CreateThread()
+        {
+            waitHandler.WaitOne();
+            
+            ApplicationDBContext context = new ApplicationDBContext();
+
+            Client client = new Client()
+            {
+                Phone = 12141212,
+                FullName = "Aleksey Alekseev"
+            };
+
+            ReceiptAndClient receiptAndClient = new ReceiptAndClient();
+
+            Receipt receipt = new Receipt()
+            {
+                Price = 100,
+                CreationDate = DateTime.Now
+            };
+
+            MedicineInReceipt medicineInReceipt = new MedicineInReceipt()
+            {
+                Quantity = 2,
+                Price = receipt.Price
+            };
+
+            Medicine medicine = new Medicine()
+            {
+                Name = "Aspirinus",
+                Price = 50,
+                SellBy = DateTime.Today.AddDays(120)
+            };
+
+            MedicineInOrder medicineInOrder = new MedicineInOrder()
+            {
+                Quantity = 4,
+                Price = 120
+            };
+
+            Order order = new Order()
+            {
+                Price = medicineInOrder.Price,
+                OrderDate = DateTime.Today.AddDays(-10),
+            };
+
+            MedicineInWarehouse medicineInWarehouse = new MedicineInWarehouse()
+            {
+                Quantity = 2
+            };
+
+            Warehouse warehouse = new Warehouse()
+            {
+                Address = "Kyiv, Khreshchatyk, 1",
+                Phone = 1522152121,
+                ManagerId = 1
+            };
+
+            receiptAndClient.Receipt = receipt;
+            receiptAndClient.Client = client;
+
+            medicineInReceipt.Medicine = medicine;
+            medicineInReceipt.Receipt = receipt;
+
+            medicineInOrder.Medicine = medicine;
+            medicineInOrder.Order = order;
+
+            order.Manager = context.Employees.First();
+            order.Supplier = context.Suppliers.First();
+
+            medicineInWarehouse.Medicine = medicine;
+            medicineInWarehouse.Warehouse = warehouse;
+
+            context.Add(client);
+            context.Add(receiptAndClient);
+            context.Add(receipt);
+            context.Add(medicineInReceipt);
+            context.Add(medicine);
+            context.Add(medicineInOrder);
+            context.Add(order);
+            context.Add(medicineInWarehouse);
+            context.Add(warehouse);
+
+            context.SaveChanges();
+            waitHandler.Set();
+        }
+
+        public static void ReadThread()
+        {
+            waitHandler.WaitOne();
+            
+            ApplicationDBContext context = new ApplicationDBContext();
+            var clients = context.Clients.ToList();
+            foreach (var item in clients)
+            {
+                Console.WriteLine($"Phone - +380{item.Phone}, Name - {item.FullName}");
+            }
+
+            waitHandler.Set();
+        }
+
+        public static void UpdateThread()
+        {
+            waitHandler.WaitOne();
+            
+            ApplicationDBContext context = new ApplicationDBContext();
+
+            var temp = context.Clients.Where(x => x.Phone == 672463891).Single();
+
+            temp.FullName = "Petro Alekseev";
+
+            context.SaveChanges();
+
+            waitHandler.Set();
+        }
+
+        public static void DeleteThread()
+        {
+            waitHandler.WaitOne();
+
+            ApplicationDBContext context = new ApplicationDBContext();
+            var temp = context.Receipts.Where(x => x.Id == 3).Single();
+            context.Receipts.Remove(temp);
+            context.SaveChanges();
+
+            waitHandler.Set();
+        }
+
+        static public async Task CreateAsync()
+        {
+            ApplicationDBContext context = new ApplicationDBContext();
+
+            Client client = new Client()
+            {
+                Phone = 12141212,
+                FullName = "Aleksey Alekseev"
+            };
+
+            ReceiptAndClient receiptAndClient = new ReceiptAndClient();
+
+            Receipt receipt = new Receipt()
+            {
+                Price = 100,
+                CreationDate = DateTime.Now
+            };
+
+            MedicineInReceipt medicineInReceipt = new MedicineInReceipt()
+            {
+                Quantity = 2,
+                Price = receipt.Price
+            };
+
+            Medicine medicine = new Medicine()
+            {
+                Name = "Aspirinus",
+                Price = 50,
+                SellBy = DateTime.Today.AddDays(120)
+            };
+
+            MedicineInOrder medicineInOrder = new MedicineInOrder()
+            {
+                Quantity = 4,
+                Price = 120
+            };
+
+            Order order = new Order()
+            {
+                Price = medicineInOrder.Price,
+                OrderDate = DateTime.Today.AddDays(-10),
+            };
+
+            MedicineInWarehouse medicineInWarehouse = new MedicineInWarehouse()
+            {
+                Quantity = 2
+            };
+
+            Warehouse warehouse = new Warehouse()
+            {
+                Address = "Kyiv, Khreshchatyk, 1",
+                Phone = 1522152121,
+                ManagerId = 1
+            };
+
+            receiptAndClient.Receipt = receipt;
+            receiptAndClient.Client = client;
+
+            medicineInReceipt.Medicine = medicine;
+            medicineInReceipt.Receipt = receipt;
+
+            medicineInOrder.Medicine = medicine;
+            medicineInOrder.Order = order;
+
+            order.Manager = context.Employees.First();
+            order.Supplier = context.Suppliers.First();
+
+            medicineInWarehouse.Medicine = medicine;
+            medicineInWarehouse.Warehouse = warehouse;
+
+            await context.AddAsync(client);
+            await context.AddAsync(receiptAndClient);
+            await context.AddAsync(receipt);
+            await context.AddAsync(medicineInReceipt);
+            await context.AddAsync(medicine);
+            await context.AddAsync(medicineInOrder);
+            await context.AddAsync(order);
+            await context.AddAsync(medicineInWarehouse);
+            await context.AddAsync(warehouse);
+
+            await context.SaveChangesAsync();
+          
+        }
+        static public async Task UpdateClientAsync(int phone)
+        {
+            ApplicationDBContext context = new ApplicationDBContext();
+            
+            var client = await context.Clients.Where(p => p.Phone == phone).FirstOrDefaultAsync();
+
+            client.FullName = "Petro Alekseev";
+
+            await context.SaveChangesAsync();
+        }
+        static public async Task DeleteReceiptAsync(int id)
+        {
+            ApplicationDBContext context = new ApplicationDBContext();
+            
+            var temp = await context.Receipts.Where(x => x.Id == id).FirstOrDefaultAsync();
+            context.Receipts.Remove(temp);
+
+            await context.SaveChangesAsync();
+        }
+        
+        static public async Task ReadAsync()
+        {
+            ApplicationDBContext context = new ApplicationDBContext();
+            var clients = await context.Clients.ToListAsync();
+            foreach (var item in clients)
+            {
+                Console.WriteLine($"Phone - +380{item.Phone}, Name - {item.FullName}");
+            }
         }
 
         public static void DefaultDatabase()
@@ -99,6 +360,8 @@ namespace PharmacyDB
 
             context.Database.ExecuteSqlRaw(createSql);
         }
+
+        
 
         public static void Union()
         {
